@@ -62,7 +62,16 @@ public class Main {
             System.out.println(bookIds[i] + " " + bookNames[i] + " " + authors[i] + " " + available[i]);
         }
 
-        String check = null;
+// Linear search by book title
+        System.out.println("Enter the book title to search: ");
+        in.nextLine(); // clear the leftover Enter key
+        String searchTerm = in.nextLine();
+
+        boolean found = false;
+
+        for (int i = 0; i < bookNames.length; i++) {
+
+            if (bookNames[i].equalsIgnoreCase(searchTerm)) {
 
         if (available[1]) {
             check = "Available";
