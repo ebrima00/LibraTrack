@@ -82,7 +82,7 @@ public class Main {
             );
         }
 
-// Linear search by book title
+        // Linear search by book title
         System.out.println("Enter the book title to search: ");
         in.nextLine(); // clear the leftover Enter key
         String searchTerm = in.nextLine();
