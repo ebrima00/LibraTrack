@@ -73,10 +73,30 @@ public class Main {
 
             if (bookNames[i].equalsIgnoreCase(searchTerm)) {
 
-        if (available[1]) {
-            check = "Available";
-        } else {
-            check = "Not Available";
+                String check;
+
+                if (available[i]) {
+                    check = "Available";
+                } else {
+                    check = "Not Available";
+                }
+
+                System.out.println(
+                        bookIds[i] + " - "
+                                + bookNames[i] + " - "
+                                + authors[i] + " - "
+                                + check
+                );
+
+                found = true;
+                break;
+            }
         }
+
+        if (!found) {
+            System.out.println(searchTerm + " not found");
+        }
+
+
     }
 }
