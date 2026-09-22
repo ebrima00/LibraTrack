@@ -13,6 +13,14 @@ public class Main {
         int[] bookIds = {101, 102};
         boolean[] available = {true, false};
 
+            //Add new status to available array
+            available = Arrays.copyOf(available, available.length + 1);
+            available[available.length - 1] = status;
+            System.out.println(Arrays.toString(available));
+
+        } while (true);
+
+        //Print books one-by-one
         for (int i = 0; i < bookNames.length; i++) {
             System.out.println(
                     bookIds[i] + " - "
