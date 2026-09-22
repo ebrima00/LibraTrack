@@ -118,5 +118,31 @@ public class Main {
         }
 
 
+        // Checkout / Return book
+        System.out.println("\nEnter the book title to checkout/return: ");
+        String bookTitle = in.nextLine();
+
+        boolean bookFound = false;
+
+        for (int i = 0; i < bookNames.length; i++) {
+
+            if (bookNames[i].equalsIgnoreCase(bookTitle)) {
+
+                if (available[i]) {
+                    available[i] = false;
+                    System.out.println(bookNames[i] + " has been checked out.");
+                } else {
+                    available[i] = true;
+                    System.out.println(bookNames[i] + " has been returned.");
+                }
+
+                bookFound = true;
+                break;
+            }
+        }
+
+        if (!bookFound) {
+            System.out.println(bookTitle + " not found.");
+        }
     }
 }
