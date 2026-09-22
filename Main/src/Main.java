@@ -61,6 +61,27 @@ public class Main {
             System.out.println(bookIds[i] + " " + bookNames[i] + " " + authors[i] + " " + available[i]);
         }
 
+        // Print full catalog in a loop
+        System.out.println("\n=== Full Book Catalog ===");
+
+        for (int i = 0; i < bookNames.length; i++) {
+
+            String check;
+
+            if (available[i]) {
+                check = "Available";
+            } else {
+                check = "Not Available";
+            }
+
+            System.out.println(
+                    bookIds[i] + " - "
+                            + bookNames[i] + " - "
+                            + authors[i] + " - "
+                            + check
+            );
+        }
+
 // Linear search by book title
         System.out.println("Enter the book title to search: ");
         in.nextLine(); // clear the leftover Enter key
