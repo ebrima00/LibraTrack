@@ -1,19 +1,19 @@
 public class Book implements Searchable, Borrowable {
 
-    private int id;
+    private String isbn;
     private String title;
     private String author;
     private boolean available;
 
-    public Book(int id, String title, String author, boolean available) {
-        this.id = id;
+    public Book(String isbn, String title, String author, boolean available) {
+        this.isbn = isbn;
         this.title = title;
         this.author = author;
         this.available = available;
     }
 
-    public int getId() {
-        return id;
+    public String getIsbn() {
+        return isbn;
     }
 
     public String getTitle() {
@@ -28,8 +28,8 @@ public class Book implements Searchable, Borrowable {
         return available;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
     }
 
     public void setTitle(String title) {
@@ -44,15 +44,13 @@ public class Book implements Searchable, Borrowable {
         this.available = available;
     }
 
-    // Implement Searchable
     @Override
     public boolean matches(String query) {
         return title.equalsIgnoreCase(query)
                 || author.equalsIgnoreCase(query)
-                || String.valueOf(id).equals(query);
+                || isbn.equalsIgnoreCase(query);
     }
 
-    // Implement Borrowable
     @Override
     public boolean borrow() {
         if (!available) {
@@ -77,7 +75,7 @@ public class Book implements Searchable, Borrowable {
     public String toString() {
         String status = available ? "Available" : "Not Available";
 
-        return "Book ID: " + id
+        return "ISBN: " + isbn
                 + ", Title: " + title
                 + ", Author: " + author
                 + ", Status: " + status;

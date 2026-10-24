@@ -10,35 +10,27 @@ public class Main {
     private static final Map<String, Runnable> menuActions = new HashMap<>();
 
     public static void main(String[] args) {
-
         initializeBooks();
         displayMembers();
         setupMenu();
         runMenu();
-
         in.close();
     }
 
-    // Add the initial books
     private static void initializeBooks() {
-        library.addBook(
-                new Book(101, "Things Fall Apart", "Chinua Achebe", true)
-        );
+        library.addBook(new Book("978-0435905255",
+                "Things Fall Apart", "Chinua Achebe", true));
 
-        library.addBook(
-                new Book(102, "Clean Code", "Robert Martin", false)
-        );
+        library.addBook(new Book("978-0132350884",
+                "Clean Code", "Robert Martin", false));
 
-        library.addBook(
-                new Book(103, "The Last Will", "Ebrima Ceesay", true)
-        );
+        library.addBook(new Book("978-0000000001",
+                "The Last Will", "Ebrima Ceesay", true));
 
-        library.addBook(
-                new Book(104, "Fences", "August Wilson", true)
-        );
+        library.addBook(new Book("978-0802130301",
+                "Fences", "August Wilson", true));
     }
 
-    // Create and display library members
     private static void displayMembers() {
         Member student = new Student(201, "Ebrima Saine");
         Member faculty = new Faculty(202, "Mr. Johnson");
@@ -48,7 +40,6 @@ public class Main {
         System.out.println(faculty);
     }
 
-    // Register menu actions
     private static void setupMenu() {
         menuActions.put("1", Main::addBook);
         menuActions.put("2", library::printCatalog);
@@ -57,9 +48,7 @@ public class Main {
         menuActions.put("5", library::printAvailableBooksSorted);
     }
 
-    // Display the menu and dispatch actions
     private static void runMenu() {
-
         boolean running = true;
 
         while (running) {
@@ -89,10 +78,21 @@ public class Main {
         }
     }
 
-    // Add a book
     private static void addBook() {
-
         System.out.println("\n=== Add a Book ===");
+
+        System.out.print("Enter book ISBN: ");
+        String isbn = in.nextLine().trim();
+
+        if (isbn.isEmpty()) {
+            System.out.println("ISBN cannot be empty.");
+            return;
+        }
+
+        if (library.findBookByIsbn(isbn) != null) {
+            System.out.println("A book with this ISBN already exists.");
+            return;
+        }
 
         System.out.print("Enter book title: ");
         String title = in.nextLine().trim();
@@ -110,17 +110,6 @@ public class Main {
             return;
         }
 
-        System.out.print("Enter book ID: ");
-
-        int id;
-
-        try {
-            id = Integer.parseInt(in.nextLine().trim());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid book ID. Please enter a number.");
-            return;
-        }
-
         System.out.print("Is the book available? (true/false): ");
         String statusInput = in.nextLine().trim();
 
@@ -135,14 +124,12 @@ public class Main {
             return;
         }
 
-        library.addBook(new Book(id, title, author, available));
+        library.addBook(new Book(isbn, title, author, available));
         System.out.println("Book added successfully!");
     }
 
-    // Search by title, author, or ID
     private static void searchBook() {
-
-        System.out.print("\nEnter book title, author, or ID: ");
+        System.out.print("\nEnter book title, author, or ISBN: ");
         String query = in.nextLine().trim();
 
         List<Book> results = library.searchBooks(query);
@@ -155,9 +142,7 @@ public class Main {
         }
     }
 
-    // Checkout or return a book
     private static void toggleBookStatus() {
-
         System.out.print("\nEnter the book title to checkout/return: ");
         String title = in.nextLine().trim();
 
