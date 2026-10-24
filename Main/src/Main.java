@@ -5,13 +5,22 @@ import java.util.Scanner;
 
 public class Main {
 
-    static Scanner in = new Scanner(System.in);
-    static Library library = new Library();
-    static Map<String, Runnable> menuActions = new HashMap<>();
+    private static final Scanner in = new Scanner(System.in);
+    private static final Library library = new Library();
+    private static final Map<String, Runnable> menuActions = new HashMap<>();
 
     public static void main(String[] args) {
 
-        // Add initial books to the library
+        initializeBooks();
+        displayMembers();
+        setupMenu();
+        runMenu();
+
+        in.close();
+    }
+
+    // Add the initial books
+    private static void initializeBooks() {
         library.addBook(
                 new Book(101, "Things Fall Apart", "Chinua Achebe", true)
         );
@@ -27,25 +36,20 @@ public class Main {
         library.addBook(
                 new Book(104, "Fences", "August Wilson", true)
         );
+    }
 
-        // Create library members
+    // Create and display library members
+    private static void displayMembers() {
         Member student = new Student(201, "Ebrima Saine");
         Member faculty = new Faculty(202, "Mr. Johnson");
 
-        // Display member information
         System.out.println("\n=== Library Members ===");
         System.out.println(student);
         System.out.println(faculty);
-
-        // Set up and run the menu
-        setupMenu();
-        runMenu();
-
-        in.close();
     }
 
     // Register menu actions
-    public static void setupMenu() {
+    private static void setupMenu() {
         menuActions.put("1", Main::addBook);
         menuActions.put("2", library::printCatalog);
         menuActions.put("3", Main::searchBook);
@@ -53,13 +57,12 @@ public class Main {
         menuActions.put("5", library::printAvailableBooksSorted);
     }
 
-    // Display and run the menu
-    public static void runMenu() {
+    // Display the menu and dispatch actions
+    private static void runMenu() {
 
         boolean running = true;
 
         while (running) {
-
             System.out.println("\n===== LibraTrack Library System =====");
             System.out.println("1. Add a Book");
             System.out.println("2. View Full Catalog");
@@ -67,7 +70,6 @@ public class Main {
             System.out.println("4. Checkout / Return a Book");
             System.out.println("5. View Available Books (Sorted by Title)");
             System.out.println("0. Exit");
-
             System.out.print("Choose an option: ");
 
             String choice = in.nextLine().trim();
@@ -88,7 +90,7 @@ public class Main {
     }
 
     // Add a book
-    public static void addBook() {
+    private static void addBook() {
 
         System.out.println("\n=== Add a Book ===");
 
@@ -120,7 +122,6 @@ public class Main {
         }
 
         System.out.print("Is the book available? (true/false): ");
-
         String statusInput = in.nextLine().trim();
 
         boolean available;
@@ -135,15 +136,13 @@ public class Main {
         }
 
         library.addBook(new Book(id, title, author, available));
-
         System.out.println("Book added successfully!");
     }
 
-    // Search by title, author, or book ID using Searchable
-    public static void searchBook() {
+    // Search by title, author, or ID
+    private static void searchBook() {
 
         System.out.print("\nEnter book title, author, or ID: ");
-
         String query = in.nextLine().trim();
 
         List<Book> results = library.searchBooks(query);
@@ -152,16 +151,14 @@ public class Main {
             System.out.println("No matching books found.");
         } else {
             System.out.println("\n=== Search Results ===");
-
             results.forEach(System.out::println);
         }
     }
 
-    // Checkout or return a book using Borrowable
-    public static void toggleBookStatus() {
+    // Checkout or return a book
+    private static void toggleBookStatus() {
 
         System.out.print("\nEnter the book title to checkout/return: ");
-
         String title = in.nextLine().trim();
 
         Book book = library.findBookByTitle(title);
@@ -172,20 +169,13 @@ public class Main {
         }
 
         if (book.isAvailable()) {
-
-            boolean success = library.borrowBook(title);
-
-            if (success) {
+            if (library.borrowBook(title)) {
                 System.out.println(book.getTitle() + " has been checked out.");
             } else {
                 System.out.println("Unable to check out this book.");
             }
-
         } else {
-
-            boolean success = library.returnBook(title);
-
-            if (success) {
+            if (library.returnBook(title)) {
                 System.out.println(book.getTitle() + " has been returned.");
             } else {
                 System.out.println("Unable to return this book.");
