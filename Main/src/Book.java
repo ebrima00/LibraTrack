@@ -1,12 +1,10 @@
-public class Book {
+public class Book implements Searchable, Borrowable {
 
-    // Private fields: encapsulation
     private int id;
     private String title;
     private String author;
     private boolean available;
 
-    // Constructor
     public Book(int id, String title, String author, boolean available) {
         this.id = id;
         this.title = title;
@@ -14,7 +12,6 @@ public class Book {
         this.available = available;
     }
 
-    // Getters
     public int getId() {
         return id;
     }
@@ -31,7 +28,6 @@ public class Book {
         return available;
     }
 
-    // Setters
     public void setId(int id) {
         this.id = id;
     }
@@ -48,7 +44,35 @@ public class Book {
         this.available = available;
     }
 
-    // toString method
+    // Implement Searchable
+    @Override
+    public boolean matches(String query) {
+        return title.equalsIgnoreCase(query)
+                || author.equalsIgnoreCase(query)
+                || String.valueOf(id).equals(query);
+    }
+
+    // Implement Borrowable
+    @Override
+    public boolean borrow() {
+        if (!available) {
+            return false;
+        }
+
+        available = false;
+        return true;
+    }
+
+    @Override
+    public boolean giveBack() {
+        if (available) {
+            return false;
+        }
+
+        available = true;
+        return true;
+    }
+
     @Override
     public String toString() {
         String status = available ? "Available" : "Not Available";

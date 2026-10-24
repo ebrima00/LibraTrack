@@ -1,12 +1,10 @@
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Library {
 
-    // The Library owns and manages its collection of books
     private final List<Book> books = new ArrayList<>();
 
     // Add a book
@@ -14,19 +12,19 @@ public class Library {
         books.add(book);
     }
 
-    // Get a copy of the book list
+    // Return a copy of the book list
     public List<Book> getBooks() {
         return new ArrayList<>(books);
     }
 
-    // Find books using a Predicate
-    public List<Book> searchBooks(Predicate<Book> condition) {
+    // Search using the Searchable interface
+    public List<Book> searchBooks(String query) {
         return books.stream()
-                .filter(condition)
+                .filter(book -> book.matches(query))
                 .collect(Collectors.toList());
     }
 
-    // Find a book by its title
+    // Find a book by title
     public Book findBookByTitle(String title) {
         return books.stream()
                 .filter(book -> book.getTitle().equalsIgnoreCase(title))
@@ -34,7 +32,7 @@ public class Library {
                 .orElse(null);
     }
 
-    // Display the complete catalog
+    // Display all books
     public void printCatalog() {
         System.out.println("\n=== Full Book Catalog ===");
 
@@ -46,7 +44,7 @@ public class Library {
         books.forEach(System.out::println);
     }
 
-    // Display available books sorted alphabetically
+    // Display available books sorted by title
     public void printAvailableBooksSorted() {
         System.out.println("\n=== Available Books (Sorted by Title) ===");
 
@@ -66,16 +64,26 @@ public class Library {
         availableBooks.forEach(System.out::println);
     }
 
-    // Checkout or return a book
-    public boolean toggleBookStatus(String title) {
+    // Borrow a book using the Borrowable interface
+    public boolean borrowBook(String title) {
         Book book = findBookByTitle(title);
 
         if (book == null) {
             return false;
         }
 
-        book.setAvailable(!book.isAvailable());
-        return true;
+        return book.borrow();
+    }
+
+    // Return a book using the Borrowable interface
+    public boolean returnBook(String title) {
+        Book book = findBookByTitle(title);
+
+        if (book == null) {
+            return false;
+        }
+
+        return book.giveBack();
     }
 
     // Check whether a title exists

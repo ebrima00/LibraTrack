@@ -2,7 +2,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.function.Predicate;
 
 public class Main {
 
@@ -33,6 +32,7 @@ public class Main {
         Member student = new Student(201, "Ebrima Saine");
         Member faculty = new Faculty(202, "Mr. Johnson");
 
+        // Display member information
         System.out.println("\n=== Library Members ===");
         System.out.println(student);
         System.out.println(faculty);
@@ -59,6 +59,7 @@ public class Main {
         boolean running = true;
 
         while (running) {
+
             System.out.println("\n===== LibraTrack Library System =====");
             System.out.println("1. Add a Book");
             System.out.println("2. View Full Catalog");
@@ -66,6 +67,7 @@ public class Main {
             System.out.println("4. Checkout / Return a Book");
             System.out.println("5. View Available Books (Sorted by Title)");
             System.out.println("0. Exit");
+
             System.out.print("Choose an option: ");
 
             String choice = in.nextLine().trim();
@@ -107,6 +109,7 @@ public class Main {
         }
 
         System.out.print("Enter book ID: ");
+
         int id;
 
         try {
@@ -117,6 +120,7 @@ public class Main {
         }
 
         System.out.print("Is the book available? (true/false): ");
+
         String statusInput = in.nextLine().trim();
 
         boolean available;
@@ -135,48 +139,57 @@ public class Main {
         System.out.println("Book added successfully!");
     }
 
-    // Search for a book
+    // Search by title, author, or book ID using Searchable
     public static void searchBook() {
 
-        System.out.print("\nEnter the book title to search: ");
-        String title = in.nextLine().trim();
+        System.out.print("\nEnter book title, author, or ID: ");
 
-        Predicate<Book> condition =
-                book -> book.getTitle().equalsIgnoreCase(title);
+        String query = in.nextLine().trim();
 
-        List<Book> results = library.searchBooks(condition);
+        List<Book> results = library.searchBooks(query);
 
         if (results.isEmpty()) {
-            System.out.println(title + " not found.");
+            System.out.println("No matching books found.");
         } else {
             System.out.println("\n=== Search Results ===");
+
             results.forEach(System.out::println);
         }
     }
 
-    // Checkout or return a book
+    // Checkout or return a book using Borrowable
     public static void toggleBookStatus() {
 
         System.out.print("\nEnter the book title to checkout/return: ");
+
         String title = in.nextLine().trim();
 
-        boolean found = library.containsBook(title);
+        Book book = library.findBookByTitle(title);
 
-        if (!found) {
+        if (book == null) {
             System.out.println(title + " not found.");
             return;
         }
 
-        Book book = library.findBookByTitle(title);
+        if (book.isAvailable()) {
 
-        boolean wasAvailable = book.isAvailable();
+            boolean success = library.borrowBook(title);
 
-        library.toggleBookStatus(title);
+            if (success) {
+                System.out.println(book.getTitle() + " has been checked out.");
+            } else {
+                System.out.println("Unable to check out this book.");
+            }
 
-        if (wasAvailable) {
-            System.out.println(book.getTitle() + " has been checked out.");
         } else {
-            System.out.println(book.getTitle() + " has been returned.");
+
+            boolean success = library.returnBook(title);
+
+            if (success) {
+                System.out.println(book.getTitle() + " has been returned.");
+            } else {
+                System.out.println("Unable to return this book.");
+            }
         }
     }
 }
