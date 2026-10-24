@@ -1,7 +1,9 @@
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -17,16 +19,22 @@ public class Main {
         books.add(new Book(104, "Fences", "August Wilson", true));
 
         addBook();
+
         printCatalog();
+
         searchBook();
+
         toggleBookStatus();
+
         printCatalog();
+
+        printAvailableBooksSorted();
 
         in.close();
     }
 
 
-    // Add new books
+    // Add new books to the catalog
     public static void addBook() {
 
         while (true) {
@@ -55,11 +63,11 @@ public class Main {
                 System.out.println("Enter book ID:");
                 id = Integer.parseInt(in.nextLine().trim());
             } catch (NumberFormatException e) {
-                System.out.println("Invalid book ID.");
+                System.out.println("Invalid book ID. Please enter a number.");
                 continue;
             }
 
-            System.out.println("Is the book available? true or false:");
+            System.out.println("Is the book available? Enter true or false:");
             String statusInput = in.nextLine().trim();
 
             boolean status;
@@ -69,7 +77,7 @@ public class Main {
             } else if (statusInput.equalsIgnoreCase("false")) {
                 status = false;
             } else {
-                System.out.println("Enter true or false.");
+                System.out.println("Invalid status. Enter true or false.");
                 continue;
             }
 
@@ -83,13 +91,9 @@ public class Main {
     // Display one book
     public static void printBook(Book book) {
 
-        String status;
-
-        if (book.isAvailable()) {
-            status = "Available";
-        } else {
-            status = "Not Available";
-        }
+        String status = book.isAvailable()
+                ? "Available"
+                : "Not Available";
 
         System.out.println(
                 book.getId() + " - "
@@ -140,7 +144,7 @@ public class Main {
         if (results.isEmpty()) {
             System.out.println(title + " not found.");
         } else {
-            System.out.println("Book found:");
+            System.out.println("\n=== Search Results ===");
 
             for (Book book : results) {
                 printBook(book);
@@ -173,6 +177,28 @@ public class Main {
             book.setAvailable(true);
             System.out.println(book.getTitle() + " has been returned.");
         }
+    }
+
+
+    // Filter available books and sort them by title using Streams
+    public static void printAvailableBooksSorted() {
+
+        System.out.println("\n=== Available Books (Sorted by Title) ===");
+
+        List<Book> availableBooks = books.stream()
+                .filter(Book::isAvailable)
+                .sorted(Comparator.comparing(
+                        Book::getTitle,
+                        String.CASE_INSENSITIVE_ORDER
+                ))
+                .collect(Collectors.toList());
+
+        if (availableBooks.isEmpty()) {
+            System.out.println("No books are currently available.");
+            return;
+        }
+
+        availableBooks.forEach(Main::printBook);
     }
 
 
