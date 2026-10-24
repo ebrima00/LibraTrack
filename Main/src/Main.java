@@ -9,8 +9,11 @@ public class Main {
     private static final Library library = new Library();
     private static final Map<String, Runnable> menuActions = new HashMap<>();
 
+    private static final Map<Integer, Member> members = new HashMap<>();
+
     public static void main(String[] args) {
         initializeBooks();
+        initializeMembers();
         displayMembers();
         setupMenu();
         runMenu();
@@ -18,26 +21,46 @@ public class Main {
     }
 
     private static void initializeBooks() {
-        library.addBook(new Book("978-0435905255",
-                "Things Fall Apart", "Chinua Achebe", true));
+        library.addBook(new Book(
+                "978-0435905255",
+                "Things Fall Apart",
+                "Chinua Achebe",
+                true
+        ));
 
-        library.addBook(new Book("978-0132350884",
-                "Clean Code", "Robert Martin", false));
+        library.addBook(new Book(
+                "978-0132350884",
+                "Clean Code",
+                "Robert Martin",
+                false
+        ));
 
-        library.addBook(new Book("978-0000000001",
-                "The Last Will", "Ebrima Ceesay", true));
+        library.addBook(new Book(
+                "978-0000000001",
+                "The Last Will",
+                "Ebrima Ceesay",
+                true
+        ));
 
-        library.addBook(new Book("978-0802130301",
-                "Fences", "August Wilson", true));
+        library.addBook(new Book(
+                "978-0802130301",
+                "Fences",
+                "August Wilson",
+                true
+        ));
+    }
+
+    private static void initializeMembers() {
+        members.put(201, new Student(201, "Ebrima Saine"));
+        members.put(202, new Faculty(202, "Mr. Johnson"));
     }
 
     private static void displayMembers() {
-        Member student = new Student(201, "Ebrima Saine");
-        Member faculty = new Faculty(202, "Mr. Johnson");
-
         System.out.println("\n=== Library Members ===");
-        System.out.println(student);
-        System.out.println(faculty);
+
+        for (Member member : members.values()) {
+            System.out.println(member);
+        }
     }
 
     private static void setupMenu() {
@@ -46,6 +69,8 @@ public class Main {
         menuActions.put("3", Main::searchBook);
         menuActions.put("4", Main::toggleBookStatus);
         menuActions.put("5", library::printAvailableBooksSorted);
+        menuActions.put("6", Main::reserveBook);
+        menuActions.put("7", Main::viewWaitlist);
     }
 
     private static void runMenu() {
@@ -58,6 +83,8 @@ public class Main {
             System.out.println("3. Search for a Book");
             System.out.println("4. Checkout / Return a Book");
             System.out.println("5. View Available Books (Sorted by Title)");
+            System.out.println("6. Reserve a Book");
+            System.out.println("7. View Reservation Waitlist");
             System.out.println("0. Exit");
             System.out.print("Choose an option: ");
 
@@ -72,7 +99,7 @@ public class Main {
                 if (action != null) {
                     action.run();
                 } else {
-                    System.out.println("Invalid option. Please choose from 0 to 5.");
+                    System.out.println("Invalid option. Please choose from 0 to 7.");
                 }
             }
         }
@@ -84,13 +111,8 @@ public class Main {
         System.out.print("Enter book ISBN: ");
         String isbn = in.nextLine().trim();
 
-        if (isbn.isEmpty()) {
-            System.out.println("ISBN cannot be empty.");
-            return;
-        }
-
-        if (library.findBookByIsbn(isbn) != null) {
-            System.out.println("A book with this ISBN already exists.");
+        if (isbn.isEmpty() || library.findBookByIsbn(isbn) != null) {
+            System.out.println("ISBN is empty or already exists.");
             return;
         }
 
@@ -149,7 +171,7 @@ public class Main {
         Book book = library.findBookByTitle(title);
 
         if (book == null) {
-            System.out.println(title + " not found.");
+            System.out.println("Book not found.");
             return;
         }
 
@@ -157,7 +179,9 @@ public class Main {
             if (library.borrowBook(title)) {
                 System.out.println(book.getTitle() + " has been checked out.");
             } else {
-                System.out.println("Unable to check out this book.");
+                System.out.println(
+                        "Checkout unsuccessful. Check whether members are waiting."
+                );
             }
         } else {
             if (library.returnBook(title)) {
@@ -166,5 +190,43 @@ public class Main {
                 System.out.println("Unable to return this book.");
             }
         }
+    }
+
+    private static void reserveBook() {
+        System.out.print("\nEnter the ISBN of the book to reserve: ");
+        String isbn = in.nextLine().trim();
+
+        Book book = library.findBookByIsbn(isbn);
+
+        if (book == null) {
+            System.out.println("Book not found.");
+            return;
+        }
+
+        System.out.print("Enter your member ID: ");
+        int memberId;
+
+        try {
+            memberId = Integer.parseInt(in.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid member ID.");
+            return;
+        }
+
+        Member member = members.get(memberId);
+
+        if (member == null) {
+            System.out.println("Member not found.");
+            return;
+        }
+
+        library.reserveBook(isbn, member);
+    }
+
+    private static void viewWaitlist() {
+        System.out.print("\nEnter the ISBN of the book: ");
+        String isbn = in.nextLine().trim();
+
+        library.printReservationWaitlist(isbn);
     }
 }

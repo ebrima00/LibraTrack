@@ -1,13 +1,19 @@
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 public class Library {
 
     private final Map<String, Book> books = new HashMap<>();
+
+    // Each ISBN has its own reservation queue.
+    private final Map<String, Queue<Member>> reservationWaitlists =
+            new HashMap<>();
 
     public void addBook(Book book) {
         if (books.containsKey(book.getIsbn())) {
@@ -16,6 +22,7 @@ public class Library {
         }
 
         books.put(book.getIsbn(), book);
+        reservationWaitlists.put(book.getIsbn(), new ArrayDeque<>());
     }
 
     public List<Book> getBooks() {
@@ -76,6 +83,14 @@ public class Library {
             return false;
         }
 
+        // Do not bypass members already waiting.
+        Queue<Member> waitlist =
+                reservationWaitlists.get(book.getIsbn());
+
+        if (waitlist != null && !waitlist.isEmpty()) {
+            return false;
+        }
+
         return book.borrow();
     }
 
@@ -87,6 +102,97 @@ public class Library {
         }
 
         return book.giveBack();
+    }
+
+    public boolean reserveBook(String isbn, Member member) {
+        Book book = books.get(isbn);
+
+        if (book == null || member == null) {
+            return false;
+        }
+
+        Queue<Member> waitlist = reservationWaitlists.get(isbn);
+
+        if (waitlist == null) {
+            return false;
+        }
+
+        if (book.isAvailable() && waitlist.isEmpty()) {
+            System.out.println(
+                    "This book is available. You can borrow it directly."
+            );
+            return false;
+        }
+
+        boolean alreadyWaiting = waitlist.stream()
+                .anyMatch(existing ->
+                        existing.getMemberId() == member.getMemberId());
+
+        if (alreadyWaiting) {
+            System.out.println(
+                    member.getName() + " is already on this waitlist."
+            );
+            return false;
+        }
+
+        waitlist.offer(member);
+
+        System.out.println(
+                member.getName() + " has been added to the waitlist for "
+                        + book.getTitle() + "."
+        );
+
+        return true;
+    }
+
+    public Member getNextReservation(String isbn) {
+        Queue<Member> waitlist = reservationWaitlists.get(isbn);
+
+        if (waitlist == null) {
+            return null;
+        }
+
+        return waitlist.peek();
+    }
+
+    public Member serveNextReservation(String isbn) {
+        Queue<Member> waitlist = reservationWaitlists.get(isbn);
+
+        if (waitlist == null || waitlist.isEmpty()) {
+            return null;
+        }
+
+        return waitlist.poll();
+    }
+
+    public void printReservationWaitlist(String isbn) {
+        Book book = books.get(isbn);
+
+        if (book == null) {
+            System.out.println("Book not found.");
+            return;
+        }
+
+        Queue<Member> waitlist = reservationWaitlists.get(isbn);
+
+        System.out.println(
+                "\n=== Reservation Waitlist: " + book.getTitle() + " ==="
+        );
+
+        if (waitlist == null || waitlist.isEmpty()) {
+            System.out.println("No members are waiting for this book.");
+            return;
+        }
+
+        int position = 1;
+
+        for (Member member : waitlist) {
+            System.out.println(
+                    position + ". " + member.getName()
+                            + " (Member ID: " + member.getMemberId() + ")"
+            );
+            position++;
+        }
     }
 
     public boolean containsBook(String title) {
