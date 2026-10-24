@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -9,102 +11,110 @@ public class Main {
 
     static Scanner in = new Scanner(System.in);
     static List<Book> books = new ArrayList<>();
+    static Map<String, Runnable> menuActions = new HashMap<>();
 
     public static void main(String[] args) {
 
-        // Initial book catalog
         books.add(new Book(101, "Things Fall Apart", "Chinua Achebe", true));
         books.add(new Book(102, "Clean Code", "Robert Martin", false));
         books.add(new Book(103, "The Last Will", "Ebrima Ceesay", true));
         books.add(new Book(104, "Fences", "August Wilson", true));
 
-        addBook();
-
-        printCatalog();
-
-        searchBook();
-
-        toggleBookStatus();
-
-        printCatalog();
-
-        printAvailableBooksSorted();
+        setupMenu();
+        runMenu();
 
         in.close();
     }
 
+    public static void setupMenu() {
+        menuActions.put("1", Main::addBook);
+        menuActions.put("2", Main::printCatalog);
+        menuActions.put("3", Main::searchBook);
+        menuActions.put("4", Main::toggleBookStatus);
+        menuActions.put("5", Main::printAvailableBooksSorted);
+    }
 
-    // Add new books to the catalog
-    public static void addBook() {
+    public static void runMenu() {
 
-        while (true) {
+        boolean running = true;
 
-            System.out.println("\nAre you adding a book? Y or N");
-            String answer = in.nextLine().trim();
+        while (running) {
+            System.out.println("\n===== LibraTrack Library System =====");
+            System.out.println("1. Add a Book");
+            System.out.println("2. View Full Catalog");
+            System.out.println("3. Search for a Book");
+            System.out.println("4. Checkout / Return a Book");
+            System.out.println("5. View Available Books (Sorted by Title)");
+            System.out.println("0. Exit");
+            System.out.print("Choose an option: ");
 
-            if (answer.equalsIgnoreCase("n")) {
-                break;
-            }
+            String choice = in.nextLine().trim();
 
-            if (!answer.equalsIgnoreCase("y")) {
-                System.out.println("Please enter Y or N.");
-                continue;
-            }
-
-            System.out.println("Enter book name:");
-            String name = in.nextLine().trim();
-
-            System.out.println("Enter author name:");
-            String author = in.nextLine().trim();
-
-            int id;
-
-            try {
-                System.out.println("Enter book ID:");
-                id = Integer.parseInt(in.nextLine().trim());
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid book ID. Please enter a number.");
-                continue;
-            }
-
-            System.out.println("Is the book available? Enter true or false:");
-            String statusInput = in.nextLine().trim();
-
-            boolean status;
-
-            if (statusInput.equalsIgnoreCase("true")) {
-                status = true;
-            } else if (statusInput.equalsIgnoreCase("false")) {
-                status = false;
+            if (choice.equals("0")) {
+                running = false;
+                System.out.println("Thank you for using LibraTrack!");
             } else {
-                System.out.println("Invalid status. Enter true or false.");
-                continue;
+                Runnable action = menuActions.get(choice);
+
+                if (action != null) {
+                    action.run();
+                } else {
+                    System.out.println("Invalid option. Please choose from 0 to 5.");
+                }
             }
-
-            books.add(new Book(id, name, author, status));
-
-            System.out.println("Book added successfully!");
         }
     }
 
+    public static void addBook() {
 
-    // Display one book
+        System.out.println("\n=== Add a Book ===");
+
+        System.out.print("Enter book title: ");
+        String title = in.nextLine().trim();
+
+        System.out.print("Enter author name: ");
+        String author = in.nextLine().trim();
+
+        System.out.print("Enter book ID: ");
+        int id;
+
+        try {
+            id = Integer.parseInt(in.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid book ID. Please enter a number.");
+            return;
+        }
+
+        System.out.print("Is the book available? (true/false): ");
+        String statusInput = in.nextLine().trim();
+
+        boolean available;
+
+        if (statusInput.equalsIgnoreCase("true")) {
+            available = true;
+        } else if (statusInput.equalsIgnoreCase("false")) {
+            available = false;
+        } else {
+            System.out.println("Invalid status. Enter true or false.");
+            return;
+        }
+
+        books.add(new Book(id, title, author, available));
+        System.out.println("Book added successfully!");
+    }
+
     public static void printBook(Book book) {
 
-        String status = book.isAvailable()
-                ? "Available"
-                : "Not Available";
+        String status = book.isAvailable() ? "Available" : "Not Available";
 
         System.out.println(
-                book.getId() + " - "
-                        + book.getTitle() + " - "
-                        + book.getAuthor() + " - "
-                        + status
+                book.getId() + " - " +
+                        book.getTitle() + " - " +
+                        book.getAuthor() + " - " +
+                        status
         );
     }
 
-
-    // Display the full catalog
     public static void printCatalog() {
 
         System.out.println("\n=== Full Book Catalog ===");
@@ -114,14 +124,11 @@ public class Main {
         }
     }
 
-
-    // Generic search using Predicate<Book>
     public static List<Book> searchBooks(Predicate<Book> condition) {
 
         List<Book> results = new ArrayList<>();
 
         for (Book book : books) {
-
             if (condition.test(book)) {
                 results.add(book);
             }
@@ -130,11 +137,9 @@ public class Main {
         return results;
     }
 
-
-    // Search for a book by title
     public static void searchBook() {
 
-        System.out.println("\nEnter the book title to search:");
+        System.out.print("\nEnter the book title to search: ");
         String title = in.nextLine().trim();
 
         List<Book> results = searchBooks(
@@ -152,11 +157,9 @@ public class Main {
         }
     }
 
-
-    // Check out or return a book
     public static void toggleBookStatus() {
 
-        System.out.println("\nEnter the book title to checkout/return:");
+        System.out.print("\nEnter the book title to checkout/return: ");
         String title = in.nextLine().trim();
 
         List<Book> results = searchBooks(
@@ -179,8 +182,6 @@ public class Main {
         }
     }
 
-
-    // Filter available books and sort them by title using Streams
     public static void printAvailableBooksSorted() {
 
         System.out.println("\n=== Available Books (Sorted by Title) ===");
@@ -201,8 +202,6 @@ public class Main {
         availableBooks.forEach(Main::printBook);
     }
 
-
-    // Book class
     static class Book {
 
         private int id;
