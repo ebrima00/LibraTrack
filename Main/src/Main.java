@@ -21,6 +21,16 @@ public class Main {
         books.add(new Book(103, "The Last Will", "Ebrima Ceesay", true));
         books.add(new Book(104, "Fences", "August Wilson", true));
 
+        // Create library members
+        Member student = new Student(201, "Ebrima Saine");
+        Member faculty = new Faculty(202, "Mr. Johnson");
+
+        // Display member information
+        System.out.println("\n=== Library Members ===");
+        System.out.println(student);
+        System.out.println(faculty);
+
+        // Set up and run the menu
         setupMenu();
         runMenu();
 
