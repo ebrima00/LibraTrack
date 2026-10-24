@@ -1,31 +1,38 @@
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class Main {
 
     static Scanner in = new Scanner(System.in);
-    static List<Book> books = new ArrayList<>();
+    static Library library = new Library();
     static Map<String, Runnable> menuActions = new HashMap<>();
 
     public static void main(String[] args) {
 
-        // Initial books
-        books.add(new Book(101, "Things Fall Apart", "Chinua Achebe", true));
-        books.add(new Book(102, "Clean Code", "Robert Martin", false));
-        books.add(new Book(103, "The Last Will", "Ebrima Ceesay", true));
-        books.add(new Book(104, "Fences", "August Wilson", true));
+        // Add initial books to the library
+        library.addBook(
+                new Book(101, "Things Fall Apart", "Chinua Achebe", true)
+        );
+
+        library.addBook(
+                new Book(102, "Clean Code", "Robert Martin", false)
+        );
+
+        library.addBook(
+                new Book(103, "The Last Will", "Ebrima Ceesay", true)
+        );
+
+        library.addBook(
+                new Book(104, "Fences", "August Wilson", true)
+        );
 
         // Create library members
         Member student = new Student(201, "Ebrima Saine");
         Member faculty = new Faculty(202, "Mr. Johnson");
 
-        // Display member information
         System.out.println("\n=== Library Members ===");
         System.out.println(student);
         System.out.println(faculty);
@@ -40,10 +47,10 @@ public class Main {
     // Register menu actions
     public static void setupMenu() {
         menuActions.put("1", Main::addBook);
-        menuActions.put("2", Main::printCatalog);
+        menuActions.put("2", library::printCatalog);
         menuActions.put("3", Main::searchBook);
         menuActions.put("4", Main::toggleBookStatus);
-        menuActions.put("5", Main::printAvailableBooksSorted);
+        menuActions.put("5", library::printAvailableBooksSorted);
     }
 
     // Display and run the menu
@@ -86,8 +93,18 @@ public class Main {
         System.out.print("Enter book title: ");
         String title = in.nextLine().trim();
 
+        if (title.isEmpty()) {
+            System.out.println("Book title cannot be empty.");
+            return;
+        }
+
         System.out.print("Enter author name: ");
         String author = in.nextLine().trim();
+
+        if (author.isEmpty()) {
+            System.out.println("Author name cannot be empty.");
+            return;
+        }
 
         System.out.print("Enter book ID: ");
         int id;
@@ -113,63 +130,27 @@ public class Main {
             return;
         }
 
-        books.add(new Book(id, title, author, available));
+        library.addBook(new Book(id, title, author, available));
 
         System.out.println("Book added successfully!");
     }
 
-    // Display one book
-    public static void printBook(Book book) {
-        System.out.println(book);
-    }
-
-    // Display all books
-    public static void printCatalog() {
-
-        System.out.println("\n=== Full Book Catalog ===");
-
-        if (books.isEmpty()) {
-            System.out.println("No books in the catalog.");
-            return;
-        }
-
-        for (Book book : books) {
-            printBook(book);
-        }
-    }
-
-    // Generic search using Predicate<Book>
-    public static List<Book> searchBooks(Predicate<Book> condition) {
-
-        List<Book> results = new ArrayList<>();
-
-        for (Book book : books) {
-            if (condition.test(book)) {
-                results.add(book);
-            }
-        }
-
-        return results;
-    }
-
-    // Search by title
+    // Search for a book
     public static void searchBook() {
 
         System.out.print("\nEnter the book title to search: ");
         String title = in.nextLine().trim();
 
-        List<Book> results = searchBooks(
-                book -> book.getTitle().equalsIgnoreCase(title)
-        );
+        Predicate<Book> condition =
+                book -> book.getTitle().equalsIgnoreCase(title);
+
+        List<Book> results = library.searchBooks(condition);
 
         if (results.isEmpty()) {
             System.out.println(title + " not found.");
         } else {
             System.out.println("\n=== Search Results ===");
-
-            for (Book book : results) {
-                printBook(book);
-            }
+            results.forEach(System.out::println);
         }
     }
 
@@ -179,44 +160,23 @@ public class Main {
         System.out.print("\nEnter the book title to checkout/return: ");
         String title = in.nextLine().trim();
 
-        List<Book> results = searchBooks(
-                book -> book.getTitle().equalsIgnoreCase(title)
-        );
+        boolean found = library.containsBook(title);
 
-        if (results.isEmpty()) {
+        if (!found) {
             System.out.println(title + " not found.");
             return;
         }
 
-        Book book = results.get(0);
+        Book book = library.findBookByTitle(title);
 
-        if (book.isAvailable()) {
-            book.setAvailable(false);
+        boolean wasAvailable = book.isAvailable();
+
+        library.toggleBookStatus(title);
+
+        if (wasAvailable) {
             System.out.println(book.getTitle() + " has been checked out.");
         } else {
-            book.setAvailable(true);
             System.out.println(book.getTitle() + " has been returned.");
         }
-    }
-
-    // Filter available books and sort by title using Streams
-    public static void printAvailableBooksSorted() {
-
-        System.out.println("\n=== Available Books (Sorted by Title) ===");
-
-        List<Book> availableBooks = books.stream()
-                .filter(Book::isAvailable)
-                .sorted(Comparator.comparing(
-                        Book::getTitle,
-                        String.CASE_INSENSITIVE_ORDER
-                ))
-                .collect(Collectors.toList());
-
-        if (availableBooks.isEmpty()) {
-            System.out.println("No books are currently available.");
-            return;
-        }
-
-        availableBooks.forEach(Main::printBook);
     }
 }
