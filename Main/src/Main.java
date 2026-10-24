@@ -15,6 +15,7 @@ public class Main {
 
     public static void main(String[] args) {
 
+        // Initial books
         books.add(new Book(101, "Things Fall Apart", "Chinua Achebe", true));
         books.add(new Book(102, "Clean Code", "Robert Martin", false));
         books.add(new Book(103, "The Last Will", "Ebrima Ceesay", true));
@@ -26,6 +27,7 @@ public class Main {
         in.close();
     }
 
+    // Register menu actions
     public static void setupMenu() {
         menuActions.put("1", Main::addBook);
         menuActions.put("2", Main::printCatalog);
@@ -34,6 +36,7 @@ public class Main {
         menuActions.put("5", Main::printAvailableBooksSorted);
     }
 
+    // Display and run the menu
     public static void runMenu() {
 
         boolean running = true;
@@ -65,6 +68,7 @@ public class Main {
         }
     }
 
+    // Add a book
     public static void addBook() {
 
         System.out.println("\n=== Add a Book ===");
@@ -100,30 +104,31 @@ public class Main {
         }
 
         books.add(new Book(id, title, author, available));
+
         System.out.println("Book added successfully!");
     }
 
+    // Display one book
     public static void printBook(Book book) {
-
-        String status = book.isAvailable() ? "Available" : "Not Available";
-
-        System.out.println(
-                book.getId() + " - " +
-                        book.getTitle() + " - " +
-                        book.getAuthor() + " - " +
-                        status
-        );
+        System.out.println(book);
     }
 
+    // Display all books
     public static void printCatalog() {
 
         System.out.println("\n=== Full Book Catalog ===");
+
+        if (books.isEmpty()) {
+            System.out.println("No books in the catalog.");
+            return;
+        }
 
         for (Book book : books) {
             printBook(book);
         }
     }
 
+    // Generic search using Predicate<Book>
     public static List<Book> searchBooks(Predicate<Book> condition) {
 
         List<Book> results = new ArrayList<>();
@@ -137,6 +142,7 @@ public class Main {
         return results;
     }
 
+    // Search by title
     public static void searchBook() {
 
         System.out.print("\nEnter the book title to search: ");
@@ -157,6 +163,7 @@ public class Main {
         }
     }
 
+    // Checkout or return a book
     public static void toggleBookStatus() {
 
         System.out.print("\nEnter the book title to checkout/return: ");
@@ -182,6 +189,7 @@ public class Main {
         }
     }
 
+    // Filter available books and sort by title using Streams
     public static void printAvailableBooksSorted() {
 
         System.out.println("\n=== Available Books (Sorted by Title) ===");
@@ -200,40 +208,5 @@ public class Main {
         }
 
         availableBooks.forEach(Main::printBook);
-    }
-
-    static class Book {
-
-        private int id;
-        private String title;
-        private String author;
-        private boolean available;
-
-        public Book(int id, String title, String author, boolean available) {
-            this.id = id;
-            this.title = title;
-            this.author = author;
-            this.available = available;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public String getAuthor() {
-            return author;
-        }
-
-        public boolean isAvailable() {
-            return available;
-        }
-
-        public void setAvailable(boolean available) {
-            this.available = available;
-        }
     }
 }
