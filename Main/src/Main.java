@@ -7,15 +7,42 @@ public class Main {
 
     private static final Scanner in = new Scanner(System.in);
     private static final Library library = new Library();
-    private static final Map<String, Runnable> menuActions = new HashMap<>();
-    private static final Map<Integer, Member> members = new HashMap<>();
+
+    private static final Map<String, Runnable> menuActions =
+            new HashMap<>();
+
+    private static final Map<Integer, Member> members =
+            new HashMap<>();
 
     public static void main(String[] args) {
         initializeBooks();
         initializeMembers();
-        displayMembers();
         setupMenu();
-        runMenu();
+
+        boolean running = true;
+
+        while (running) {
+            displayMenu();
+
+            System.out.print("Choose an option: ");
+            String choice = in.nextLine().trim();
+
+            if (choice.equals("0")) {
+                running = false;
+                System.out.println("Thank you for using LibraTrack!");
+            } else {
+                Runnable action = menuActions.get(choice);
+
+                if (action != null) {
+                    action.run();
+                } else {
+                    System.out.println("Invalid option. Try again.");
+                }
+            }
+
+            System.out.println();
+        }
+
         in.close();
     }
 
@@ -54,14 +81,6 @@ public class Main {
         members.put(202, new Faculty(202, "Mr. Johnson"));
     }
 
-    private static void displayMembers() {
-        System.out.println("\n=== Library Members ===");
-
-        for (Member member : members.values()) {
-            System.out.println(member);
-        }
-    }
-
     private static void setupMenu() {
         menuActions.put("1", Main::addBook);
         menuActions.put("2", library::printCatalog);
@@ -71,91 +90,55 @@ public class Main {
         menuActions.put("6", Main::reserveBook);
         menuActions.put("7", Main::viewWaitlist);
         menuActions.put("8", library::printRecentlyReturnedBooks);
+        menuActions.put("9", library::printCatalogSortedByTitle);
     }
 
-    private static void runMenu() {
-        while (true) {
-            System.out.println("\n===== LibraTrack Library System =====");
-            System.out.println("1. Add a Book");
-            System.out.println("2. View Full Catalog");
-            System.out.println("3. Search for a Book");
-            System.out.println("4. Checkout / Return a Book");
-            System.out.println("5. View Available Books (Sorted by Title)");
-            System.out.println("6. Reserve a Book");
-            System.out.println("7. View Reservation Waitlist");
-            System.out.println("8. View Recently Returned Books");
-            System.out.println("0. Exit");
-
-            System.out.print("Choose an option: ");
-            String choice = in.nextLine().trim();
-
-            if (choice.equals("0")) {
-                System.out.println("Thank you for using LibraTrack!");
-                break;
-            }
-
-            Runnable action = menuActions.get(choice);
-
-            if (action != null) {
-                action.run();
-            } else {
-                System.out.println("Invalid option. Please choose from 0 to 8.");
-            }
-        }
+    private static void displayMenu() {
+        System.out.println("========== LibraTrack ==========");
+        System.out.println("1. Add a Book");
+        System.out.println("2. Display Full Catalog");
+        System.out.println("3. Search for a Book");
+        System.out.println("4. Borrow or Return a Book");
+        System.out.println("5. Display Available Books (A-Z)");
+        System.out.println("6. Reserve a Book");
+        System.out.println("7. View Reservation Waitlist");
+        System.out.println("8. View Recently Returned Books");
+        System.out.println("9. Display Catalog Sorted by Title");
+        System.out.println("0. Exit");
+        System.out.println("================================");
     }
 
     private static void addBook() {
-        System.out.println("\n=== Add a Book ===");
-
-        System.out.print("Enter book ISBN: ");
+        System.out.print("Enter ISBN: ");
         String isbn = in.nextLine().trim();
-
-        if (isbn.isEmpty()) {
-            System.out.println("ISBN cannot be empty.");
-            return;
-        }
-
-        if (library.findBookByIsbn(isbn) != null) {
-            System.out.println("A book with this ISBN already exists.");
-            return;
-        }
 
         System.out.print("Enter book title: ");
         String title = in.nextLine().trim();
 
-        if (title.isEmpty()) {
-            System.out.println("Book title cannot be empty.");
-            return;
-        }
-
-        System.out.print("Enter author name: ");
+        System.out.print("Enter author: ");
         String author = in.nextLine().trim();
 
-        if (author.isEmpty()) {
-            System.out.println("Author name cannot be empty.");
-            return;
-        }
-
         System.out.print("Is the book available? (yes/no): ");
-        String statusInput = in.nextLine().trim();
+        String answer = in.nextLine().trim();
 
-        boolean available;
+        boolean available =
+                answer.equalsIgnoreCase("yes")
+                        || answer.equalsIgnoreCase("y");
 
-        if (statusInput.equalsIgnoreCase("yes")) {
-            available = true;
-        } else if (statusInput.equalsIgnoreCase("no")) {
-            available = false;
+        Book book = new Book(isbn, title, author, available);
+
+        if (library.addBook(book)) {
+            System.out.println("Book added successfully.");
         } else {
-            System.out.println("Invalid choice. Enter yes or no.");
-            return;
+            System.out.println(
+                    "Book was not added. Check the ISBN and title; "
+                            + "duplicates are not allowed."
+            );
         }
-
-        library.addBook(new Book(isbn, title, author, available));
-        System.out.println("Book added successfully!");
     }
 
     private static void searchBook() {
-        System.out.print("\nEnter book title, author, or ISBN: ");
+        System.out.print("Enter title, author, or ISBN to search: ");
         String query = in.nextLine().trim();
 
         List<Book> results = library.searchBooks(query);
@@ -165,12 +148,15 @@ public class Main {
             return;
         }
 
-        System.out.println("\n=== Search Results ===");
-        results.forEach(System.out::println);
+        System.out.println("\n===== Search Results =====");
+
+        for (Book book : results) {
+            System.out.println(book);
+        }
     }
 
     private static void toggleBookStatus() {
-        System.out.print("\nEnter the book title: ");
+        System.out.print("Enter the book title: ");
         String title = in.nextLine().trim();
 
         Book book = library.findBookByTitle(title);
@@ -181,71 +167,58 @@ public class Main {
         }
 
         if (book.isAvailable()) {
-            boolean borrowed = library.borrowBook(title);
-
-            if (borrowed) {
-                System.out.println(book.getTitle() + " has been checked out.");
+            if (library.borrowBook(title)) {
+                System.out.println("Book borrowed successfully.");
             } else {
                 System.out.println(
-                        "Checkout unsuccessful. A reservation may be pending."
+                        "The book could not be borrowed."
                 );
             }
         } else {
-            boolean returned = library.returnBook(title);
-
-            if (returned) {
-                System.out.println(book.getTitle() + " has been returned.");
+            if (library.returnBook(title)) {
+                System.out.println("Book returned successfully.");
 
                 Member nextMember =
                         library.getNextReservation(book.getIsbn());
 
                 if (nextMember != null) {
                     System.out.println(
-                            "Next in the reservation queue: "
+                            "Next reservation: "
                                     + nextMember.getName()
-                                    + " (Member ID: "
-                                    + nextMember.getMemberId() + ")"
                     );
                 }
             } else {
-                System.out.println("Unable to return this book.");
+                System.out.println(
+                        "The book could not be returned."
+                );
             }
         }
     }
 
     private static void reserveBook() {
-        System.out.print("\nEnter the ISBN of the book to reserve: ");
+        System.out.print("Enter the book ISBN: ");
         String isbn = in.nextLine().trim();
 
-        Book book = library.findBookByIsbn(isbn);
-
-        if (book == null) {
-            System.out.println("Book not found.");
-            return;
-        }
-
         System.out.print("Enter your member ID: ");
-        int memberId;
 
         try {
-            memberId = Integer.parseInt(in.nextLine().trim());
+            int memberId = Integer.parseInt(in.nextLine().trim());
+            Member member = members.get(memberId);
+
+            if (member == null) {
+                System.out.println("Member ID not found.");
+                return;
+            }
+
+            library.reserveBook(isbn, member);
+
         } catch (NumberFormatException e) {
-            System.out.println("Invalid member ID. Enter a number.");
-            return;
+            System.out.println("Please enter a valid numeric member ID.");
         }
-
-        Member member = members.get(memberId);
-
-        if (member == null) {
-            System.out.println("Member not found.");
-            return;
-        }
-
-        library.reserveBook(isbn, member);
     }
 
     private static void viewWaitlist() {
-        System.out.print("\nEnter the ISBN of the book: ");
+        System.out.print("Enter the book ISBN: ");
         String isbn = in.nextLine().trim();
 
         library.printReservationWaitlist(isbn);
