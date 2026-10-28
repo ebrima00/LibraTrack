@@ -1,6 +1,7 @@
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,9 +12,12 @@ public class Library {
 
     private final Map<String, Book> books = new HashMap<>();
 
-    // Each ISBN has its own reservation queue.
+    // Reservation queue for each book.
     private final Map<String, Queue<Member>> reservationWaitlists =
             new HashMap<>();
+
+    // Stack containing recently returned books.
+    private final Deque<Book> recentlyReturnedBooks = new ArrayDeque<>();
 
     public void addBook(Book book) {
         if (books.containsKey(book.getIsbn())) {
@@ -83,10 +87,9 @@ public class Library {
             return false;
         }
 
-        // Do not bypass members already waiting.
-        Queue<Member> waitlist =
-                reservationWaitlists.get(book.getIsbn());
+        Queue<Member> waitlist = reservationWaitlists.get(book.getIsbn());
 
+        // Do not bypass members waiting for the book.
         if (waitlist != null && !waitlist.isEmpty()) {
             return false;
         }
@@ -97,25 +100,29 @@ public class Library {
     public boolean returnBook(String title) {
         Book book = findBookByTitle(title);
 
-        if (book == null) {
+        if (book == null || book.isAvailable()) {
             return false;
         }
 
-        return book.giveBack();
+        if (!book.giveBack()) {
+            return false;
+        }
+
+        // Push the returned book onto the top of the stack.
+        recentlyReturnedBooks.push(book);
+
+        return true;
     }
 
     public boolean reserveBook(String isbn, Member member) {
         Book book = books.get(isbn);
 
         if (book == null || member == null) {
+            System.out.println("Book or member not found.");
             return false;
         }
 
         Queue<Member> waitlist = reservationWaitlists.get(isbn);
-
-        if (waitlist == null) {
-            return false;
-        }
 
         if (book.isAvailable() && waitlist.isEmpty()) {
             System.out.println(
@@ -158,7 +165,7 @@ public class Library {
     public Member serveNextReservation(String isbn) {
         Queue<Member> waitlist = reservationWaitlists.get(isbn);
 
-        if (waitlist == null || waitlist.isEmpty()) {
+        if (waitlist == null) {
             return null;
         }
 
@@ -193,6 +200,30 @@ public class Library {
             );
             position++;
         }
+    }
+
+    public void printRecentlyReturnedBooks() {
+        System.out.println("\n=== Recently Returned Books ===");
+
+        if (recentlyReturnedBooks.isEmpty()) {
+            System.out.println("No books have been returned during this session.");
+            return;
+        }
+
+        int position = 1;
+
+        for (Book book : recentlyReturnedBooks) {
+            System.out.println(position + ". " + book);
+            position++;
+        }
+    }
+
+    public Book getMostRecentlyReturnedBook() {
+        return recentlyReturnedBooks.peek();
+    }
+
+    public Book removeMostRecentlyReturnedBook() {
+        return recentlyReturnedBooks.poll();
     }
 
     public boolean containsBook(String title) {
