@@ -91,6 +91,7 @@ public class Main {
         menuActions.put("7", Main::viewWaitlist);
         menuActions.put("8", library::printRecentlyReturnedBooks);
         menuActions.put("9", library::printCatalogSortedByTitle);
+        menuActions.put("10", Main::viewBorrowHistory);
     }
 
     private static void displayMenu() {
@@ -104,6 +105,7 @@ public class Main {
         System.out.println("7. View Reservation Waitlist");
         System.out.println("8. View Recently Returned Books");
         System.out.println("9. Display Catalog Sorted by Title");
+        System.out.println("10. View Member Borrow History");
         System.out.println("0. Exit");
         System.out.println("================================");
     }
@@ -121,24 +123,20 @@ public class Main {
         System.out.print("Is the book available? (yes/no): ");
         String answer = in.nextLine().trim();
 
-        boolean available =
-                answer.equalsIgnoreCase("yes")
-                        || answer.equalsIgnoreCase("y");
+        boolean available = answer.equalsIgnoreCase("yes")
+                || answer.equalsIgnoreCase("y");
 
         Book book = new Book(isbn, title, author, available);
 
         if (library.addBook(book)) {
             System.out.println("Book added successfully.");
         } else {
-            System.out.println(
-                    "Book was not added. Check the ISBN and title; "
-                            + "duplicates are not allowed."
-            );
+            System.out.println("Book was not added. Check for duplicates.");
         }
     }
 
     private static void searchBook() {
-        System.out.print("Enter title, author, or ISBN to search: ");
+        System.out.print("Enter title, author, or ISBN: ");
         String query = in.nextLine().trim();
 
         List<Book> results = library.searchBooks(query);
@@ -166,61 +164,91 @@ public class Main {
             return;
         }
 
-        if (book.isAvailable()) {
-            if (library.borrowBook(title)) {
-                System.out.println("Book borrowed successfully.");
-            } else {
-                System.out.println(
-                        "The book could not be borrowed."
-                );
-            }
-        } else {
-            if (library.returnBook(title)) {
-                System.out.println("Book returned successfully.");
-
-                Member nextMember =
-                        library.getNextReservation(book.getIsbn());
-
-                if (nextMember != null) {
-                    System.out.println(
-                            "Next reservation: "
-                                    + nextMember.getName()
-                    );
-                }
-            } else {
-                System.out.println(
-                        "The book could not be returned."
-                );
-            }
-        }
-    }
-
-    private static void reserveBook() {
-        System.out.print("Enter the book ISBN: ");
-        String isbn = in.nextLine().trim();
-
-        System.out.print("Enter your member ID: ");
+        System.out.print("Enter member ID: ");
 
         try {
             int memberId = Integer.parseInt(in.nextLine().trim());
             Member member = members.get(memberId);
 
             if (member == null) {
-                System.out.println("Member ID not found.");
+                System.out.println("Member not found.");
+                return;
+            }
+
+            if (book.isAvailable()) {
+                if (library.borrowBook(title, member)) {
+                    System.out.println("Book borrowed successfully.");
+                } else {
+                    System.out.println("Book could not be borrowed.");
+                }
+            } else {
+                if (library.returnBook(title, member)) {
+                    System.out.println("Book returned successfully.");
+
+                    Member nextMember =
+                            library.getNextReservation(book.getIsbn());
+
+                    if (nextMember != null) {
+                        System.out.println(
+                                "Next reservation: " + nextMember.getName()
+                        );
+                    }
+                } else {
+                    System.out.println("Book could not be returned.");
+                }
+            }
+
+        } catch (NumberFormatException e) {
+            System.out.println("Enter a valid numeric member ID.");
+        }
+    }
+
+    private static void reserveBook() {
+        System.out.print("Enter book ISBN: ");
+        String isbn = in.nextLine().trim();
+
+        System.out.print("Enter member ID: ");
+
+        try {
+            int memberId = Integer.parseInt(in.nextLine().trim());
+            Member member = members.get(memberId);
+
+            if (member == null) {
+                System.out.println("Member not found.");
                 return;
             }
 
             library.reserveBook(isbn, member);
 
         } catch (NumberFormatException e) {
-            System.out.println("Please enter a valid numeric member ID.");
+            System.out.println("Enter a valid numeric member ID.");
         }
     }
 
     private static void viewWaitlist() {
-        System.out.print("Enter the book ISBN: ");
+        System.out.print("Enter book ISBN: ");
         String isbn = in.nextLine().trim();
 
         library.printReservationWaitlist(isbn);
+    }
+
+    // Display transaction history for a selected member.
+    private static void viewBorrowHistory() {
+        System.out.print("Enter member ID: ");
+
+        try {
+            int memberId = Integer.parseInt(in.nextLine().trim());
+            Member member = members.get(memberId);
+
+            if (member == null) {
+                System.out.println("Member not found.");
+                return;
+            }
+
+            member.printBorrowHistory();
+
+        } catch (NumberFormatException e) {
+            System.out.println("Enter a valid numeric member ID.");
+        }
     }
 }

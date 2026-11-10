@@ -2,11 +2,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import java.util.TreeMap;
 
 public class Library {
@@ -22,23 +20,18 @@ public class Library {
     private final Deque<Book> recentlyReturnedBooks =
             new ArrayDeque<>();
 
-    // Add a book to the catalog.
     public boolean addBook(Book book) {
-        if (book == null) {
+        if (book == null || book.getIsbn() == null
+                || book.getTitle() == null
+                || book.getIsbn().trim().isEmpty()
+                || book.getTitle().trim().isEmpty()) {
             return false;
         }
 
         String isbn = book.getIsbn();
         String title = book.getTitle();
 
-        if (isbn == null || title == null
-                || isbn.trim().isEmpty()
-                || title.trim().isEmpty()) {
-            return false;
-        }
-
-        if (books.containsKey(isbn)
-                || booksByTitle.containsKey(title)) {
+        if (books.containsKey(isbn) || booksByTitle.containsKey(title)) {
             return false;
         }
 
@@ -49,22 +42,18 @@ public class Library {
         return true;
     }
 
-    // Return all books.
     public List<Book> getBooks() {
         return new ArrayList<>(books.values());
     }
 
-    // Find a book using its ISBN.
     public Book findBookByIsbn(String isbn) {
         return books.get(isbn);
     }
 
-    // Find a book using its title.
     public Book findBookByTitle(String title) {
         return booksByTitle.get(title);
     }
 
-    // Search by title, author, or ISBN.
     public List<Book> searchBooks(String query) {
         List<Book> results = new ArrayList<>();
 
@@ -77,7 +66,6 @@ public class Library {
         return results;
     }
 
-    // Display the catalog in its normal storage order.
     public void printCatalog() {
         if (books.isEmpty()) {
             System.out.println("The library catalog is empty.");
@@ -91,7 +79,6 @@ public class Library {
         }
     }
 
-    // Display the catalog sorted alphabetically by title.
     public void printCatalogSortedByTitle() {
         if (booksByTitle.isEmpty()) {
             System.out.println("The library catalog is empty.");
@@ -105,7 +92,6 @@ public class Library {
         }
     }
 
-    // Display available books sorted alphabetically by title.
     public void printAvailableBooksSorted() {
         boolean found = false;
 
@@ -123,11 +109,10 @@ public class Library {
         }
     }
 
-    // Borrow a book by title.
-    public boolean borrowBook(String title) {
+    public boolean borrowBook(String title, Member member) {
         Book book = findBookByTitle(title);
 
-        if (book == null || !book.isAvailable()) {
+        if (book == null || member == null || !book.isAvailable()) {
             return false;
         }
 
@@ -135,43 +120,52 @@ public class Library {
                 reservationWaitlists.get(book.getIsbn());
 
         if (waitlist != null && !waitlist.isEmpty()) {
-            System.out.println(
-                    "This book has a reservation waitlist. "
-                            + "Serve the next reservation first."
+            System.out.println("This book has a reservation waitlist.");
+            return false;
+        }
+
+        if (book.borrow()) {
+            Transaction transaction = new Transaction(
+                    book.getIsbn(),
+                    book.getTitle(),
+                    "BORROWED"
             );
-            return false;
-        }
 
-        return book.borrow();
-    }
-
-    // Return a book by title.
-    public boolean returnBook(String title) {
-        Book book = findBookByTitle(title);
-
-        if (book == null || book.isAvailable()) {
-            return false;
-        }
-
-        if (book.giveBack()) {
-            recentlyReturnedBooks.push(book);
+            member.addTransaction(transaction);
             return true;
         }
 
         return false;
     }
 
-    // Add a member to a book's reservation waitlist.
+    public boolean returnBook(String title, Member member) {
+        Book book = findBookByTitle(title);
+
+        if (book == null || member == null || book.isAvailable()) {
+            return false;
+        }
+
+        if (book.giveBack()) {
+            recentlyReturnedBooks.push(book);
+
+            Transaction transaction = new Transaction(
+                    book.getIsbn(),
+                    book.getTitle(),
+                    "RETURNED"
+            );
+
+            member.addTransaction(transaction);
+            return true;
+        }
+
+        return false;
+    }
+
     public void reserveBook(String isbn, Member member) {
         Book book = books.get(isbn);
 
-        if (book == null) {
-            System.out.println("Book not found.");
-            return;
-        }
-
-        if (member == null) {
-            System.out.println("Member not found.");
+        if (book == null || member == null) {
+            System.out.println("Book or member not found.");
             return;
         }
 
@@ -184,55 +178,34 @@ public class Library {
         }
 
         for (Member queuedMember : waitlist) {
-            if (queuedMember.getMemberId()
-                    == member.getMemberId()) {
-                System.out.println(
-                        "This member is already on the waitlist."
-                );
+            if (queuedMember.getMemberId() == member.getMemberId()) {
+                System.out.println("Member is already on the waitlist.");
                 return;
             }
         }
 
         if (book.isAvailable() && waitlist.isEmpty()) {
-            System.out.println(
-                    "The book is available. It can be borrowed directly."
-            );
+            System.out.println("The book is available for borrowing.");
             return;
         }
 
         waitlist.offer(member);
 
         System.out.println(
-                member.getName()
-                        + " has been added to the reservation waitlist."
+                member.getName() + " added to the reservation waitlist."
         );
     }
 
-    // View the next member waiting for a book.
     public Member getNextReservation(String isbn) {
-        Queue<Member> waitlist =
-                reservationWaitlists.get(isbn);
-
-        if (waitlist == null) {
-            return null;
-        }
-
-        return waitlist.peek();
+        Queue<Member> waitlist = reservationWaitlists.get(isbn);
+        return waitlist == null ? null : waitlist.peek();
     }
 
-    // Remove and return the next member in the waitlist.
     public Member serveNextReservation(String isbn) {
-        Queue<Member> waitlist =
-                reservationWaitlists.get(isbn);
-
-        if (waitlist == null) {
-            return null;
-        }
-
-        return waitlist.poll();
+        Queue<Member> waitlist = reservationWaitlists.get(isbn);
+        return waitlist == null ? null : waitlist.poll();
     }
 
-    // Display the reservation waitlist for a book.
     public void printReservationWaitlist(String isbn) {
         Book book = books.get(isbn);
 
@@ -241,8 +214,7 @@ public class Library {
             return;
         }
 
-        Queue<Member> waitlist =
-                reservationWaitlists.get(isbn);
+        Queue<Member> waitlist = reservationWaitlists.get(isbn);
 
         System.out.println(
                 "\n===== Reservation Waitlist: "
@@ -257,14 +229,11 @@ public class Library {
         int position = 1;
 
         for (Member member : waitlist) {
-            System.out.println(
-                    position + ". " + member
-            );
+            System.out.println(position + ". " + member);
             position++;
         }
     }
 
-    // Display recently returned books, newest first.
     public void printRecentlyReturnedBooks() {
         System.out.println("\n===== Recently Returned Books =====");
 
@@ -278,27 +247,22 @@ public class Library {
         }
     }
 
-    // Get the most recently returned book.
     public Book getMostRecentlyReturnedBook() {
         return recentlyReturnedBooks.peek();
     }
 
-    // Remove the most recently returned book from the history stack.
     public Book removeMostRecentlyReturnedBook() {
         return recentlyReturnedBooks.poll();
     }
 
-    // Check whether a book title exists.
     public boolean containsBook(String title) {
         return booksByTitle.containsKey(title);
     }
 
-    // Return the number of books.
     public int getBookCount() {
         return books.size();
     }
 
-    // Return a copy of the catalog sorted by title.
     public List<Book> getBooksSortedByTitle() {
         return new ArrayList<>(booksByTitle.values());
     }
