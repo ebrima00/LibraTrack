@@ -1,3 +1,12 @@
+package com.libratrack.app;
+
+import com.libratrack.model.Book;
+import com.libratrack.model.Faculty;
+import com.libratrack.model.Member;
+import com.libratrack.model.Student;
+import com.libratrack.service.Library;
+import com.libratrack.util.LibraryUtils;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +24,7 @@ public class Main {
             new HashMap<>();
 
     public static void main(String[] args) {
+
         initializeBooks();
         initializeMembers();
         setupMenu();
@@ -47,6 +57,7 @@ public class Main {
     }
 
     private static void initializeBooks() {
+
         library.addBook(new Book(
                 "978-0435905255",
                 "Things Fall Apart",
@@ -82,6 +93,7 @@ public class Main {
     }
 
     private static void setupMenu() {
+
         menuActions.put("1", Main::addBook);
         menuActions.put("2", library::printCatalog);
         menuActions.put("3", Main::searchBook);
@@ -95,7 +107,9 @@ public class Main {
     }
 
     private static void displayMenu() {
-        System.out.println("========== LibraTrack ==========");
+
+        LibraryUtils.printHeader("LibraTrack");
+
         System.out.println("1. Add a Book");
         System.out.println("2. Display Full Catalog");
         System.out.println("3. Search for a Book");
@@ -107,18 +121,28 @@ public class Main {
         System.out.println("9. Display Catalog Sorted by Title");
         System.out.println("10. View Member Borrow History");
         System.out.println("0. Exit");
-        System.out.println("================================");
+
+        LibraryUtils.printSeparator();
     }
 
     private static void addBook() {
+
         System.out.print("Enter ISBN: ");
         String isbn = in.nextLine().trim();
 
         System.out.print("Enter book title: ");
-        String title = in.nextLine().trim();
+        String title = LibraryUtils.formatTitle(in.nextLine());
 
         System.out.print("Enter author: ");
         String author = in.nextLine().trim();
+
+        if (!LibraryUtils.isValidInput(isbn)
+                || !LibraryUtils.isValidInput(title)
+                || !LibraryUtils.isValidInput(author)) {
+
+            System.out.println("All book details are required.");
+            return;
+        }
 
         System.out.print("Is the book available? (yes/no): ");
         String answer = in.nextLine().trim();
@@ -136,8 +160,14 @@ public class Main {
     }
 
     private static void searchBook() {
+
         System.out.print("Enter title, author, or ISBN: ");
         String query = in.nextLine().trim();
+
+        if (!LibraryUtils.isValidInput(query)) {
+            System.out.println("Search input cannot be empty.");
+            return;
+        }
 
         List<Book> results = library.searchBooks(query);
 
@@ -146,7 +176,7 @@ public class Main {
             return;
         }
 
-        System.out.println("\n===== Search Results =====");
+        LibraryUtils.printHeader("Search Results");
 
         for (Book book : results) {
             System.out.println(book);
@@ -154,6 +184,7 @@ public class Main {
     }
 
     private static void toggleBookStatus() {
+
         System.out.print("Enter the book title: ");
         String title = in.nextLine().trim();
 
@@ -176,12 +207,15 @@ public class Main {
             }
 
             if (book.isAvailable()) {
+
                 if (library.borrowBook(title, member)) {
                     System.out.println("Book borrowed successfully.");
                 } else {
                     System.out.println("Book could not be borrowed.");
                 }
+
             } else {
+
                 if (library.returnBook(title, member)) {
                     System.out.println("Book returned successfully.");
 
@@ -193,6 +227,7 @@ public class Main {
                                 "Next reservation: " + nextMember.getName()
                         );
                     }
+
                 } else {
                     System.out.println("Book could not be returned.");
                 }
@@ -204,6 +239,7 @@ public class Main {
     }
 
     private static void reserveBook() {
+
         System.out.print("Enter book ISBN: ");
         String isbn = in.nextLine().trim();
 
@@ -226,14 +262,15 @@ public class Main {
     }
 
     private static void viewWaitlist() {
+
         System.out.print("Enter book ISBN: ");
         String isbn = in.nextLine().trim();
 
         library.printReservationWaitlist(isbn);
     }
 
-    // Display transaction history for a selected member.
     private static void viewBorrowHistory() {
+
         System.out.print("Enter member ID: ");
 
         try {

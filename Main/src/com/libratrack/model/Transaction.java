@@ -1,3 +1,5 @@
+package com.libratrack.model;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -36,7 +38,7 @@ public class Transaction {
         DateTimeFormatter formatter =
                 DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
-        return "Book: " + bookTitle
+        return "com.libratrack.model.Book: " + bookTitle
                 + ", ISBN: " + isbn
                 + ", Action: " + transactionType
                 + ", Date: " + transactionDate.format(formatter);

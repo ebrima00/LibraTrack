@@ -1,18 +1,20 @@
+package com.libratrack.service;
+
+import com.libratrack.model.Book;
+import com.libratrack.model.Member;
+import com.libratrack.model.Transaction;
+import com.libratrack.repository.BookRepository;
+
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Queue;
-import java.util.TreeMap;
 
 public class Library {
 
-    private final Map<String, Book> books = new HashMap<>();
-
-    private final TreeMap<String, Book> booksByTitle =
-            new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final BookRepository bookRepository = new BookRepository();
 
     private final Map<String, Queue<Member>> reservationWaitlists =
             new HashMap<>();
@@ -21,52 +23,34 @@ public class Library {
             new ArrayDeque<>();
 
     public boolean addBook(Book book) {
-        if (book == null || book.getIsbn() == null
-                || book.getTitle() == null
-                || book.getIsbn().trim().isEmpty()
-                || book.getTitle().trim().isEmpty()) {
-            return false;
+        boolean added = bookRepository.addBook(book);
+
+        if (added) {
+            reservationWaitlists.put(book.getIsbn(), new ArrayDeque<>());
         }
 
-        String isbn = book.getIsbn();
-        String title = book.getTitle();
-
-        if (books.containsKey(isbn) || booksByTitle.containsKey(title)) {
-            return false;
-        }
-
-        books.put(isbn, book);
-        booksByTitle.put(title, book);
-        reservationWaitlists.put(isbn, new ArrayDeque<>());
-
-        return true;
+        return added;
     }
 
     public List<Book> getBooks() {
-        return new ArrayList<>(books.values());
+        return bookRepository.getAllBooks();
     }
 
     public Book findBookByIsbn(String isbn) {
-        return books.get(isbn);
+        return bookRepository.findBookByIsbn(isbn);
     }
 
     public Book findBookByTitle(String title) {
-        return booksByTitle.get(title);
+        return bookRepository.findBookByTitle(title);
     }
 
     public List<Book> searchBooks(String query) {
-        List<Book> results = new ArrayList<>();
-
-        for (Book book : books.values()) {
-            if (book.matches(query)) {
-                results.add(book);
-            }
-        }
-
-        return results;
+        return bookRepository.searchBooks(query);
     }
 
     public void printCatalog() {
+        List<Book> books = bookRepository.getAllBooks();
+
         if (books.isEmpty()) {
             System.out.println("The library catalog is empty.");
             return;
@@ -74,20 +58,22 @@ public class Library {
 
         System.out.println("\n===== Library Catalog =====");
 
-        for (Book book : books.values()) {
+        for (Book book : books) {
             System.out.println(book);
         }
     }
 
     public void printCatalogSortedByTitle() {
-        if (booksByTitle.isEmpty()) {
+        List<Book> books = bookRepository.getBooksSortedByTitle();
+
+        if (books.isEmpty()) {
             System.out.println("The library catalog is empty.");
             return;
         }
 
         System.out.println("\n===== Catalog Sorted by Title =====");
 
-        for (Book book : booksByTitle.values()) {
+        for (Book book : books) {
             System.out.println(book);
         }
     }
@@ -97,7 +83,7 @@ public class Library {
 
         System.out.println("\n===== Available Books (A-Z) =====");
 
-        for (Book book : booksByTitle.values()) {
+        for (Book book : bookRepository.getBooksSortedByTitle()) {
             if (book.isAvailable()) {
                 System.out.println(book);
                 found = true;
@@ -162,7 +148,7 @@ public class Library {
     }
 
     public void reserveBook(String isbn, Member member) {
-        Book book = books.get(isbn);
+        Book book = findBookByIsbn(isbn);
 
         if (book == null || member == null) {
             System.out.println("Book or member not found.");
@@ -207,7 +193,7 @@ public class Library {
     }
 
     public void printReservationWaitlist(String isbn) {
-        Book book = books.get(isbn);
+        Book book = findBookByIsbn(isbn);
 
         if (book == null) {
             System.out.println("Book not found.");
@@ -256,14 +242,14 @@ public class Library {
     }
 
     public boolean containsBook(String title) {
-        return booksByTitle.containsKey(title);
+        return bookRepository.containsBook(title);
     }
 
     public int getBookCount() {
-        return books.size();
+        return bookRepository.getBookCount();
     }
 
     public List<Book> getBooksSortedByTitle() {
-        return new ArrayList<>(booksByTitle.values());
+        return bookRepository.getBooksSortedByTitle();
     }
 }

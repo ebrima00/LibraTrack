@@ -1,3 +1,5 @@
+package com.libratrack.model;
+
 public class Faculty extends Member {
 
     public Faculty(int memberId, String name) {
@@ -11,6 +13,6 @@ public class Faculty extends Member {
 
     @Override
     public String toString() {
-        return "Faculty - " + super.toString();
+        return "com.libratrack.model.Faculty - " + super.toString();
     }
 }

@@ -1,3 +1,5 @@
+package com.libratrack.model;
+
 public class Book implements Searchable, Borrowable {
 
     private String isbn;

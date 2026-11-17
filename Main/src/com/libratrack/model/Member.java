@@ -1,3 +1,5 @@
+package com.libratrack.model;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -50,7 +52,7 @@ public abstract class Member {
 
     @Override
     public String toString() {
-        return "Member ID: " + memberId
+        return "com.libratrack.model.Member ID: " + memberId
                 + ", Name: " + name
                 + ", Borrow Limit: " + getBorrowLimit() + " books";
     }
