@@ -4,7 +4,8 @@ import com.libratrack.model.Book;
 import com.libratrack.model.Faculty;
 import com.libratrack.model.Member;
 import com.libratrack.model.Student;
-import com.libratrack.service.Library;
+import com.libratrack.service.LibraryService;
+import com.libratrack.service.LibraryServiceImpl;
 import com.libratrack.util.LibraryUtils;
 
 import java.util.HashMap;
@@ -15,7 +16,9 @@ import java.util.Scanner;
 public class Main {
 
     private static final Scanner in = new Scanner(System.in);
-    private static final Library library = new Library();
+
+    private static final LibraryService library =
+            new LibraryServiceImpl();
 
     private static final Map<String, Runnable> menuActions =
             new HashMap<>();

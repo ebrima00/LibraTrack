@@ -7,12 +7,12 @@ import com.libratrack.repository.BookRepository;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Queue;
 
-public class Library {
+public class LibraryServiceImpl implements LibraryService {
 
     private final BookRepository bookRepository = new BookRepository();
 
@@ -22,6 +22,7 @@ public class Library {
     private final Deque<Book> recentlyReturnedBooks =
             new ArrayDeque<>();
 
+    @Override
     public boolean addBook(Book book) {
         boolean added = bookRepository.addBook(book);
 
@@ -32,22 +33,27 @@ public class Library {
         return added;
     }
 
+    @Override
     public List<Book> getBooks() {
         return bookRepository.getAllBooks();
     }
 
+    @Override
     public Book findBookByIsbn(String isbn) {
         return bookRepository.findBookByIsbn(isbn);
     }
 
+    @Override
     public Book findBookByTitle(String title) {
         return bookRepository.findBookByTitle(title);
     }
 
+    @Override
     public List<Book> searchBooks(String query) {
         return bookRepository.searchBooks(query);
     }
 
+    @Override
     public void printCatalog() {
         List<Book> books = bookRepository.getAllBooks();
 
@@ -63,6 +69,7 @@ public class Library {
         }
     }
 
+    @Override
     public void printCatalogSortedByTitle() {
         List<Book> books = bookRepository.getBooksSortedByTitle();
 
@@ -78,6 +85,7 @@ public class Library {
         }
     }
 
+    @Override
     public void printAvailableBooksSorted() {
         boolean found = false;
 
@@ -95,6 +103,7 @@ public class Library {
         }
     }
 
+    @Override
     public boolean borrowBook(String title, Member member) {
         Book book = findBookByTitle(title);
 
@@ -124,6 +133,7 @@ public class Library {
         return false;
     }
 
+    @Override
     public boolean returnBook(String title, Member member) {
         Book book = findBookByTitle(title);
 
@@ -147,6 +157,7 @@ public class Library {
         return false;
     }
 
+    @Override
     public void reserveBook(String isbn, Member member) {
         Book book = findBookByIsbn(isbn);
 
@@ -182,16 +193,19 @@ public class Library {
         );
     }
 
+    @Override
     public Member getNextReservation(String isbn) {
         Queue<Member> waitlist = reservationWaitlists.get(isbn);
         return waitlist == null ? null : waitlist.peek();
     }
 
+    @Override
     public Member serveNextReservation(String isbn) {
         Queue<Member> waitlist = reservationWaitlists.get(isbn);
         return waitlist == null ? null : waitlist.poll();
     }
 
+    @Override
     public void printReservationWaitlist(String isbn) {
         Book book = findBookByIsbn(isbn);
 
@@ -220,6 +234,7 @@ public class Library {
         }
     }
 
+    @Override
     public void printRecentlyReturnedBooks() {
         System.out.println("\n===== Recently Returned Books =====");
 
@@ -233,22 +248,27 @@ public class Library {
         }
     }
 
+    @Override
     public Book getMostRecentlyReturnedBook() {
         return recentlyReturnedBooks.peek();
     }
 
+    @Override
     public Book removeMostRecentlyReturnedBook() {
         return recentlyReturnedBooks.poll();
     }
 
+    @Override
     public boolean containsBook(String title) {
         return bookRepository.containsBook(title);
     }
 
+    @Override
     public int getBookCount() {
         return bookRepository.getBookCount();
     }
 
+    @Override
     public List<Book> getBooksSortedByTitle() {
         return bookRepository.getBooksSortedByTitle();
     }
