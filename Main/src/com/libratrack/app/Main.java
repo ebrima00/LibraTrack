@@ -13,6 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * Main entry point of the LibraTrack library management system.
+ *
+ * Initializes books and members, displays the application menu,
+ * and handles user selections through the library service.
+ */
 public class Main {
 
     private static final Scanner in = new Scanner(System.in);
@@ -26,6 +32,14 @@ public class Main {
     private static final Map<Integer, Member> members =
             new HashMap<>();
 
+    /**
+     * Starts the LibraTrack application.
+     *
+     * Initializes the library data, configures the menu actions,
+     * and continuously accepts user selections until the user exits.
+     *
+     * @param args command-line arguments supplied when starting the application
+     */
     public static void main(String[] args) {
 
         initializeBooks();

@@ -12,6 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+/**
+ * Provides the implementation of the LibraryService interface.
+ * Manages book operations, borrowing, returning, reservations,
+ * and recently returned books.
+ *
+ * Uses BookRepository for book storage, a Queue for reservation
+ * waitlists, and a Deque for recently returned books.
+ */
 public class LibraryServiceImpl implements LibraryService {
 
     private final BookRepository bookRepository = new BookRepository();
@@ -22,6 +30,12 @@ public class LibraryServiceImpl implements LibraryService {
     private final Deque<Book> recentlyReturnedBooks =
             new ArrayDeque<>();
 
+    /**
+     * Adds a book to the library and initializes its reservation waitlist.
+     *
+     * @param book the book to add
+     * @return true if the book is successfully added, otherwise false
+     */
     @Override
     public boolean addBook(Book book) {
         boolean added = bookRepository.addBook(book);
@@ -33,26 +47,53 @@ public class LibraryServiceImpl implements LibraryService {
         return added;
     }
 
+    /**
+     * Retrieves all books stored in the library.
+     *
+     * @return a list of all books
+     */
     @Override
     public List<Book> getBooks() {
         return bookRepository.getAllBooks();
     }
 
+    /**
+     * Finds a book using its ISBN.
+     *
+     * @param isbn the ISBN of the book
+     * @return the matching book, or null if not found
+     */
     @Override
     public Book findBookByIsbn(String isbn) {
         return bookRepository.findBookByIsbn(isbn);
     }
 
+    /**
+     * Finds a book using its title.
+     *
+     * @param title the title of the book
+     * @return the matching book, or null if not found
+     */
     @Override
     public Book findBookByTitle(String title) {
         return bookRepository.findBookByTitle(title);
     }
 
+    /**
+     * Searches the library catalog for books matching a query.
+     *
+     * @param query the search text
+     * @return a list of matching books
+     */
     @Override
     public List<Book> searchBooks(String query) {
         return bookRepository.searchBooks(query);
     }
 
+    /**
+     * Displays all books in the library catalog.
+     * Displays a message if the catalog is empty.
+     */
     @Override
     public void printCatalog() {
         List<Book> books = bookRepository.getAllBooks();
@@ -69,6 +110,10 @@ public class LibraryServiceImpl implements LibraryService {
         }
     }
 
+    /**
+     * Displays all books sorted alphabetically by title.
+     * Displays a message if the catalog is empty.
+     */
     @Override
     public void printCatalogSortedByTitle() {
         List<Book> books = bookRepository.getBooksSortedByTitle();
@@ -85,6 +130,10 @@ public class LibraryServiceImpl implements LibraryService {
         }
     }
 
+    /**
+     * Displays all currently available books in alphabetical order.
+     * Displays a message if no books are available.
+     */
     @Override
     public void printAvailableBooksSorted() {
         boolean found = false;
@@ -103,6 +152,15 @@ public class LibraryServiceImpl implements LibraryService {
         }
     }
 
+    /**
+     * Attempts to borrow a book for a library member.
+     * Borrowing is rejected if the book does not exist, is unavailable,
+     * the member is null, or the book has a reservation waitlist.
+     *
+     * @param title the title of the book to borrow
+     * @param member the member requesting the book
+     * @return true if borrowing succeeds, otherwise false
+     */
     @Override
     public boolean borrowBook(String title, Member member) {
         Book book = findBookByTitle(title);
@@ -133,6 +191,15 @@ public class LibraryServiceImpl implements LibraryService {
         return false;
     }
 
+    /**
+     * Processes the return of a borrowed book.
+     * Updates the book's availability, records the transaction,
+     * and adds the book to the recently returned collection.
+     *
+     * @param title the title of the book being returned
+     * @param member the member returning the book
+     * @return true if the return succeeds, otherwise false
+     */
     @Override
     public boolean returnBook(String title, Member member) {
         Book book = findBookByTitle(title);
@@ -157,6 +224,13 @@ public class LibraryServiceImpl implements LibraryService {
         return false;
     }
 
+    /**
+     * Adds a member to a book's reservation waitlist.
+     * Prevents duplicate reservations by the same member.
+     *
+     * @param isbn the ISBN of the book to reserve
+     * @param member the member requesting the reservation
+     */
     @Override
     public void reserveBook(String isbn, Member member) {
         Book book = findBookByIsbn(isbn);
@@ -193,18 +267,37 @@ public class LibraryServiceImpl implements LibraryService {
         );
     }
 
+    /**
+     * Retrieves the next member in a reservation waitlist
+     * without removing them.
+     *
+     * @param isbn the ISBN of the reserved book
+     * @return the next waiting member, or null if the waitlist is empty
+     */
     @Override
     public Member getNextReservation(String isbn) {
         Queue<Member> waitlist = reservationWaitlists.get(isbn);
         return waitlist == null ? null : waitlist.peek();
     }
 
+    /**
+     * Removes and returns the next member in a reservation waitlist.
+     *
+     * @param isbn the ISBN of the reserved book
+     * @return the next waiting member, or null if the waitlist is empty
+     */
     @Override
     public Member serveNextReservation(String isbn) {
         Queue<Member> waitlist = reservationWaitlists.get(isbn);
         return waitlist == null ? null : waitlist.poll();
     }
 
+    /**
+     * Displays the reservation waitlist for a specified book.
+     * Members are displayed in their reservation order.
+     *
+     * @param isbn the ISBN of the book
+     */
     @Override
     public void printReservationWaitlist(String isbn) {
         Book book = findBookByIsbn(isbn);
@@ -234,6 +327,10 @@ public class LibraryServiceImpl implements LibraryService {
         }
     }
 
+    /**
+     * Displays books in the recently returned collection.
+     * The most recently returned book appears first.
+     */
     @Override
     public void printRecentlyReturnedBooks() {
         System.out.println("\n===== Recently Returned Books =====");
@@ -248,26 +345,52 @@ public class LibraryServiceImpl implements LibraryService {
         }
     }
 
+    /**
+     * Retrieves the most recently returned book without removing it.
+     *
+     * @return the most recently returned book, or null if none exists
+     */
     @Override
     public Book getMostRecentlyReturnedBook() {
         return recentlyReturnedBooks.peek();
     }
 
+    /**
+     * Removes and returns the most recently returned book.
+     *
+     * @return the removed book, or null if the collection is empty
+     */
     @Override
     public Book removeMostRecentlyReturnedBook() {
         return recentlyReturnedBooks.poll();
     }
 
+    /**
+     * Checks whether a book with the specified title exists.
+     *
+     * @param title the title to check
+     * @return true if the book exists, otherwise false
+     */
     @Override
     public boolean containsBook(String title) {
         return bookRepository.containsBook(title);
     }
 
+    /**
+     * Returns the total number of books in the library.
+     *
+     * @return the total number of stored books
+     */
     @Override
     public int getBookCount() {
         return bookRepository.getBookCount();
     }
 
+    /**
+     * Retrieves all books sorted alphabetically by title.
+     *
+     * @return a list of books sorted by title
+     */
     @Override
     public List<Book> getBooksSortedByTitle() {
         return bookRepository.getBooksSortedByTitle();
